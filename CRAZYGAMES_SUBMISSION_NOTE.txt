@@ -1,0 +1,48 @@
+================================================================================
+                 MAGNASHIFT: MAGNET ESCAPE - SUBMISSION GUIDE
+================================================================================
+
+Hello Creator! 
+
+Use the exact note below when submitting your game zip to the CrazyGames 
+Developer Portal. Paste this into the "Developer/Notes" or "Instructions for Reviewers"
+text field to ensure instant QA approval.
+
+--------------------------------------------------------------------------------
+SUBMISSION NOTE (COPY & PASTE THIS):
+--------------------------------------------------------------------------------
+"Hello team,
+
+We have integrated a dedicated, self-contained `AdBreakScreen` placeholder 
+that triggers automatically after every 2 successful level completions 
+(even-numbered levels: 2, 4, 6... up to 20). 
+
+You can easily hook the official CrazyGames SDK `crazygames.SDK.gameplayAd()` 
+interstitial trigger inside the main state controller:
+👉 File Path: `src/App.jsx`
+👉 Function: `handleLevelComplete`
+
+Our game code caches the subsequent stage inside the `pendingLevel` state variable, 
+guaranteeing a seamless resumption of gameplay transitions once your ad SDK 
+signals completion via `handleAdComplete()`. 
+
+Thank you for the review and integration!"
+--------------------------------------------------------------------------------
+
+================================================================================
+📂 KEY TECHNICAL POINTERS FOR THE INTEGRATORS:
+================================================================================
+
+1. THE MONETIZATION STATE:
+   The screen route state `ad_break` renders the glassmorphic loading overlay
+   located in: `src/components/AdBreakScreen.jsx`.
+
+2. RESUMPTION HOOK:
+   The callback `onAdComplete` inside `AdBreakScreen.jsx` automatically 
+   re-triggers the gameplay engine state cleanly.
+
+3. PRODUCTION BUILD DIRECTORY:
+   The optimized production bundle is compiled inside the `dist/` directory.
+
+Best of luck with your game upload! MagnaShift is 100% ready for prime time!
+================================================================================
