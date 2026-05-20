@@ -5,12 +5,12 @@ import GameUI from './components/GameUI';
 import GameCanvas from './components/GameCanvas';
 import SettingsModal from './components/SettingsModal';
 import HelpModal from './components/HelpModal';
-import AdBreakScreen from './components/AdBreakScreen';
+import { crazyGamesSDK } from './utils/crazyGamesSDK';
 import { levels } from './utils/levels';
 import { ShieldAlert, Award, RotateCcw, Home, HelpCircle } from 'lucide-react';
 
 function App() {
-  const [screen, setScreen] = useState('menu'); // 'menu', 'levels', 'game', 'gameover', 'victory', 'ad_break'
+  const [screen, setScreen] = useState('menu'); // 'menu', 'levels', 'game', 'gameover', 'victory'
   
   // Levels progression
   const [currentLevel, setCurrentLevel] = useState(levels[0]);
@@ -20,7 +20,6 @@ function App() {
 
   // Ad monetization & gameplay triggers
   const [completedLevelsCount, setCompletedLevelsCount] = useState(0);
-  const [pendingLevel, setPendingLevel] = useState(null);
 
   // Settings & Help
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -31,6 +30,35 @@ function App() {
     friction: 0.985,
     soundEnabled: true
   });
+
+  // Initialize CrazyGames SDK on load
+  useEffect(() => {
+    crazyGamesSDK.init();
+  }, []);
+
+  // GameMonetize SDK pause/resume hooks
+  useEffect(() => {
+    window.onSDKPause = () => {
+      console.log('[MagnaShift] SDK Pause received');
+    };
+    window.onSDKResume = () => {
+      console.log('[MagnaShift] SDK Resume received');
+    };
+    return () => {
+      window.onSDKPause = null;
+      window.onSDKResume = null;
+    };
+  }, []);
+
+  // Telemetry for Level Start/Stop
+  useEffect(() => {
+    if (screen === 'game') {
+      crazyGamesSDK.notifyGameplayStart();
+    }
+    return () => {
+      crazyGamesSDK.notifyGameplayStop();
+    };
+  }, [currentLevel.id, screen]);
 
   // Handle transition helper
   const transitionToNext = (nextLevel) => {
@@ -58,18 +86,23 @@ function App() {
     setCompletedLevelsCount(nextCompletedCount);
 
     if (nextCompletedCount % 2 === 0) {
-      // Trigger CrazyGames Interstitial Ad Break placeholder!
-      setPendingLevel(nextLevel || 'victory');
-      setScreen('ad_break');
+      // Request midgame ad break from CrazyGames SDK
+      crazyGamesSDK.requestAd('midgame', {
+        onAdStarted: () => {
+          console.log("[App] Midgame ad break started");
+        },
+        onAdFinished: () => {
+          transitionToNext(nextLevel);
+        },
+        onAdError: (err) => {
+          console.warn("[App] Midgame ad error:", err);
+          transitionToNext(nextLevel); // Fallback to let player continue
+        }
+      });
     } else {
       // Direct transition
       transitionToNext(nextLevel);
     }
-  };
-
-  const handleAdComplete = () => {
-    transitionToNext(pendingLevel);
-    setPendingLevel(null);
   };
 
   const handleGameOver = () => {
@@ -169,6 +202,7 @@ function App() {
             onLevelComplete={handleLevelComplete}
             onGameOver={handleGameOver}
             onReset={handleRestartLevel}
+            soundEnabled={physicsConfig.soundEnabled}
           />
         </div>
       )}
@@ -325,10 +359,6 @@ function App() {
         </div>
       )}
 
-      {/* Ad Break Screen */}
-      {screen === 'ad_break' && (
-        <AdBreakScreen onAdComplete={handleAdComplete} />
-      )}
 
       {/* Settings Modal */}
       <SettingsModal 

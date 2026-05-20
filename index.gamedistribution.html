@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MagnaShift: Magnet Escape — A futuristic 2D physics puzzle game where you manipulate polarity (Pull/Push) to guide metal cores through challenging traps." />
+    <title>MagnaShift: Magnet Escape</title>
+    <script type="text/javascript">
+      window.GD_OPTIONS = {
+        gameId: "ADD_YOUR_GD_GAME_ID_HERE",
+        onEvent: function(event) {
+          switch (event.name) {
+            case "SDK_GAME_PAUSE":
+              if (window.gdsdkCallbacks && typeof window.gdsdkCallbacks.onAdStarted === 'function') {
+                window.gdsdkCallbacks.onAdStarted();
+              }
+              break;
+            case "SDK_GAME_START":
+              if (window.gdsdkCallbacks && typeof window.gdsdkCallbacks.onAdFinished === 'function') {
+                window.gdsdkCallbacks.onAdFinished();
+              }
+              break;
+            case "SDK_ERROR":
+              if (window.gdsdkCallbacks && typeof window.gdsdkCallbacks.onAdFinished === 'function') {
+                window.gdsdkCallbacks.onAdFinished();
+              }
+              break;
+          }
+        }
+      };
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = 'https://html5.api.gamedistribution.com/main.min.js';
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'gamedistribution-jssdk'));
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
