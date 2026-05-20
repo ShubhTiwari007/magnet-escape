@@ -1,33 +1,37 @@
 // src/utils/crazyGamesSDK.js
-// GameMonetize SDK Implementation for MagnaShift: Magnet Escape
+// CrazyGames SDK Integration for MagnaShift: Magnet Escape
 
+let crazySDK = null;
 let isAudioMuted = false;
-let activeAdCallbacks = null;
 
 export const crazyGamesSDK = {
   initialized: false,
-  
+
   init() {
     if (this.initialized) return;
-    this.initialized = true;
 
-    window.sdkCallbacks = {
-      onAdStarted: () => {
-        console.log("[GameMonetize SDK] Ad started. Pausing game.");
-        isAudioMuted = true;
-        if (activeAdCallbacks && typeof activeAdCallbacks.onAdStarted === 'function') {
-          activeAdCallbacks.onAdStarted();
+    if (window.CrazyGames && window.CrazyGames.SDK) {
+      try {
+        crazySDK = window.CrazyGames.SDK;
+        crazySDK.init();
+        this.initialized = true;
+        console.log("[CrazyGames SDK] Official SDK v3 initialized successfully.");
+
+        // Listen for system mute settings from CrazyGames dashboard/overlay
+        if (crazySDK.game && typeof crazySDK.game.addSettingsChangeListener === 'function') {
+          crazySDK.game.addSettingsChangeListener((settings) => {
+            if (settings && settings.muteAudio !== undefined) {
+              console.log(`[CrazyGames SDK] Audio mute setting changed: ${settings.muteAudio}`);
+              isAudioMuted = settings.muteAudio;
+            }
+          });
         }
-      },
-      onAdFinished: () => {
-        console.log("[GameMonetize SDK] Ad finished. Resuming game.");
-        isAudioMuted = false;
-        if (activeAdCallbacks && typeof activeAdCallbacks.onAdFinished === 'function') {
-          activeAdCallbacks.onAdFinished();
-        }
-        activeAdCallbacks = null;
+      } catch (e) {
+        console.error("[CrazyGames SDK] Failed to initialize official SDK:", e);
       }
-    };
+    } else {
+      console.log("[CrazyGames SDK] Running in local standalone/mock mode.");
+    }
   },
 
   isMuted() {
@@ -36,28 +40,55 @@ export const crazyGamesSDK = {
 
   notifyGameplayStart() {
     this.init();
-    console.log("[GameMonetize SDK] gameplayStart() signaled.");
+    if (crazySDK && crazySDK.game) {
+      try {
+        crazySDK.game.gameplayStart();
+        console.log("[CrazyGames SDK] gameplayStart() signaled.");
+      } catch (e) {
+        console.warn("[CrazyGames SDK] Error calling gameplayStart:", e);
+      }
+    }
   },
 
   notifyGameplayStop() {
-    console.log("[GameMonetize SDK] gameplayStop() signaled.");
+    if (crazySDK && crazySDK.game) {
+      try {
+        crazySDK.game.gameplayStop();
+        console.log("[CrazyGames SDK] gameplayStop() signaled.");
+      } catch (e) {
+        console.warn("[CrazyGames SDK] Error calling gameplayStop:", e);
+      }
+    }
   },
 
-  requestAd(type, callbacks) {
+  requestAd(type, { onAdStarted, onAdFinished, onAdError }) {
     this.init();
 
-    if (typeof sdk !== 'undefined' && sdk.showBanner) {
-      console.log(`[GameMonetize SDK] Requesting ${type} ad...`);
-      activeAdCallbacks = callbacks;
+    if (crazySDK && crazySDK.ad) {
+      const adType = type === 'rewarded' ? 'rewarded' : 'midgame';
+      console.log(`[CrazyGames SDK] Requesting ${adType} ad break...`);
 
-      sdk.showBanner();
+      crazySDK.ad.requestAd(adType, {
+        adStarted: () => {
+          console.log("[CrazyGames SDK] Ad started. Pausing game.");
+          if (onAdStarted) onAdStarted();
+        },
+        adFinished: () => {
+          console.log("[CrazyGames SDK] Ad finished. Resuming game.");
+          if (onAdFinished) onAdFinished();
+        },
+        adError: (error) => {
+          console.error("[CrazyGames SDK] Ad error:", error);
+          if (onAdError) onAdError(error);
+          else if (onAdFinished) onAdFinished(); // Fail-safe fallback to allow play
+        }
+      });
       return true;
     }
 
-    console.log("[GameMonetize SDK Mock] No SDK detected, bypassing ad.");
-    if (callbacks && typeof callbacks.onAdFinished === 'function') {
-      callbacks.onAdFinished();
-    }
+    // Standing local fallback -> immediately continue gameplay without delay
+    console.log("[CrazyGames SDK Mock] Ad break simulated, immediately continuing.");
+    if (onAdFinished) onAdFinished();
     return false;
   }
 };

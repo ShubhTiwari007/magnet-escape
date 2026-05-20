@@ -2,37 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="MagnaShift: Magnet Escape - Control magnetic polarity to guide steel cores through 20 challenging puzzle levels. A premium physics puzzle game." />
+    <meta name="description" content="MagnaShift: Magnet Escape — A futuristic 2D physics puzzle game where you manipulate polarity (Pull/Push) to guide metal cores through challenging traps." />
     <title>MagnaShift: Magnet Escape</title>
-    <script type="text/javascript">
-      window.SDK_OPTIONS = {
-        gameId: "0683bd1j0xektwspmwi80imit997e19w",
-        onEvent: function(event) {
-          switch (event.name) {
-            case "SDK_GAME_PAUSE":
-              if (typeof window.onSDKPause === 'function') window.onSDKPause();
-              if (window.sdkCallbacks && typeof window.sdkCallbacks.onAdStarted === 'function') window.sdkCallbacks.onAdStarted();
-              break;
-            case "SDK_GAME_START":
-              if (typeof window.onSDKResume === 'function') window.onSDKResume();
-              if (window.sdkCallbacks && typeof window.sdkCallbacks.onAdFinished === 'function') window.sdkCallbacks.onAdFinished();
-              break;
-            case "SDK_ERROR":
-              if (typeof window.onSDKResume === 'function') window.onSDKResume();
-              if (window.sdkCallbacks && typeof window.sdkCallbacks.onAdFinished === 'function') window.sdkCallbacks.onAdFinished();
-              break;
-          }
-        }
-      };
-      (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-        js.src = 'https://api.gamemonetize.com/sdk.js';
-        fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'gamemonetize-sdk'));
-    </script>
+    <!-- CrazyGames SDK v3 -->
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
   </head>
   <body>
     <div id="root"></div>
